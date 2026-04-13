@@ -13,7 +13,7 @@ interface AnalogClockProps {
 }
 
 const AnalogClock: React.FC<AnalogClockProps> = ({
-  size = 400,
+  size = 300,
   interactive = false,
   hours: propHours,
   minutes: propMinutes,
@@ -40,113 +40,174 @@ const AnalogClock: React.FC<AnalogClockProps> = ({
 
   useEffect(() => {
     if (isControlled) {
-      const angles = getAngleFromTime(propHours!, propMinutes!, propSeconds || 0);
-      setHourAngle(angles.hour);
-      setMinuteAngle(angles.minute);
-      setSecondAngle(angles.second);
+      const angles = getAngleFromTime(propHours!, propMinutes!, propSeconds ?? 0);
+      setHourAngle(angles.hourAngle);
+      setMinuteAngle(angles.minuteAngle);
+      setSecondAngle(angles.secondAngle);
     } else if (!interactive) {
       const angles = getAngleFromTime(liveTime.getHours(), liveTime.getMinutes(), liveTime.getSeconds());
-      setHourAngle(angles.hour);
-      setMinuteAngle(angles.minute);
-      setSecondAngle(angles.second);
+      setHourAngle(angles.hourAngle);
+      setMinuteAngle(angles.minuteAngle);
+      setSecondAngle(angles.secondAngle);
     }
-  }, [liveTime, propHours, propMinutes, propSeconds, isControlled, interactive]);
+  }, [isControlled, propHours, propMinutes, propSeconds, liveTime, interactive]);
+
+  const getPointerPos = useCallback((e: React.PointerEvent | PointerEvent) => {
+    const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
+    const rect = svg.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+  }, []);
+
+  const handlePointerDown = useCallback((hand: 'hour' | 'minute') => (e: React.PointerEvent) => {
+    if (!interactive) return;
+    e.preventDefault();
+    setDragging(hand);
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  }, [interactive]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragging || !svgRef.current || !onTimeChange) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - size / 2;
-    const y = e.clientY - rect.top - size / 2;
-    const angle = getAngleFromPoint(x, y);
-
+    if (!dragging || !interactive) return;
+    const { x, y } = getPointerPos(e);
+    const cx = size / 2;
+    const cy = size / 2;
+    const angle = getAngleFromPoint(cx, cy, x, y);
     if (dragging === 'hour') {
       setHourAngle(angle);
+      const { hours, minutes } = getTimeFromAngles(angle, minuteAngle);
+      onTimeChange?.(hours, minutes);
     } else {
-      setMinuteAngle(angle);
+      const snapped = Math.round(angle / 6) * 6;
+      setMinuteAngle(snapped);
+      const { hours, minutes } = getTimeFromAngles(hourAngle, snapped);
+      onTimeChange?.(hours, minutes);
     }
+  }, [dragging, interactive, getPointerPos, size, minuteAngle, hourAngle, onTimeChange]);
 
-    const { hours, minutes } = getTimeFromAngles(
-      dragging === 'hour' ? angle : hourAngle,
-      dragging === 'minute' ? angle : minuteAngle
-    );
-    onTimeChange(hours, minutes);
-  }, [dragging, hourAngle, minuteAngle, size, onTimeChange]);
+  const handlePointerUp = useCallback(() => {
+    setDragging(null);
+  }, []);
 
-  const cx = size / 2;
-  const cy = size / 2;
+  // Layout: we need extra space for outer minute numbers
+  const padding = 35;
+  const totalSize = size + padding * 2;
+  const cx = totalSize / 2;
+  const cy = totalSize / 2;
+  const r = size / 2 - 10;
+
+  // Outer minute numbers (0, 5, 10, ... 55)
+  const minuteNumbers = Array.from({ length: 12 }, (_, i) => {
+    const num = i * 5;
+    const angle = (num * 6 - 90) * (Math.PI / 180);
+    const nr = r + 22;
+    return { num, x: cx + nr * Math.cos(angle), y: cy + nr * Math.sin(angle) };
+  });
+
+  // Inner hour numbers (1-12)
+  const hourNumbers = Array.from({ length: 12 }, (_, i) => {
+    const num = i + 1;
+    const angle = (num * 30 - 90) * (Math.PI / 180);
+    const nr = r - 28;
+    return { num, x: cx + nr * Math.cos(angle), y: cy + nr * Math.sin(angle) };
+  });
+
+  // Minute tick dots
+  const minuteDots = Array.from({ length: 60 }, (_, i) => {
+    const angle = (i * 6 - 90) * (Math.PI / 180);
+    const dr = r - 8;
+    const isHour = i % 5 === 0;
+    return { x: cx + dr * Math.cos(angle), y: cy + dr * Math.sin(angle), isHour };
+  });
+
+  const hourHandLen = r * 0.48;
+  const minuteHandLen = r * 0.68;
+  const secondHandLen = r * 0.75;
+
+  const handEnd = (angle: number, len: number) => {
+    const rad = (angle - 90) * (Math.PI / 180);
+    return { x: cx + len * Math.cos(rad), y: cy + len * Math.sin(rad) };
+  };
+
+  const hEnd = handEnd(hourAngle, hourHandLen);
+  const mEnd = handEnd(minuteAngle, minuteHandLen);
+  const sEnd = handEnd(secondAngle, secondHandLen);
 
   return (
-    <div className="relative flex items-center justify-center p-6 bg-white rounded-[50px] shadow-2xl border-[12px] border-purple-50">
-      <svg
-        ref={svgRef}
-        width={size}
-        height={size}
-        viewBox={`0 0 ${size} ${size}`}
-        onPointerMove={handlePointerMove}
-        onPointerUp={() => setDragging(null)}
-        onPointerLeave={() => setDragging(null)}
-        className="touch-none"
-      >
-        <defs>
-          <filter id="shadow" x="-20%" y="-20%" width="150%" height="150%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
-            <feOffset dx="2" dy="2" result="offsetblur" />
-            <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
-            <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
-          </filter>
-        </defs>
+    <svg
+      ref={svgRef}
+      width={totalSize}
+      height={totalSize}
+      viewBox={`0 0 ${totalSize} ${totalSize}`}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+      className="select-none touch-none"
+    >
+      {/* Outer minute numbers */}
+      {minuteNumbers.map(({ num, x, y }) => (
+        <text key={`m${num}`} x={x} y={y} textAnchor="middle" dominantBaseline="central"
+          fill="hsl(0, 0%, 40%)" fontSize={size > 200 ? 13 : 10} fontWeight="bold" fontFamily="Fredoka">
+          {num}
+        </text>
+      ))}
 
-        {/* Plat Jam Utama */}
-        <circle cx={cx} cy={cy} r={size / 2 - 10} fill="white" stroke="#9D64FA" strokeWidth="6" />
-        <circle cx={cx} cy={cy} r={size / 2 - 30} fill="none" stroke="#F3E8FF" strokeWidth="1" strokeDasharray="5,5" />
+      {/* Outer ring */}
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="hsl(45, 100%, 60%)" strokeWidth={8} />
+      <circle cx={cx} cy={cy} r={r - 12} fill="hsl(0, 0%, 100%)" stroke="hsl(250, 20%, 88%)" strokeWidth={1} />
 
-        {/* Angka Jam */}
-        {[...Array(12)].map((_, i) => {
-          const angle = (i + 1) * 30;
-          const x = cx + (size / 2 - 65) * Math.sin((angle * Math.PI) / 180);
-          const y = cy - (size / 2 - 65) * Math.cos((angle * Math.PI) / 180);
-          return (
-            <text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="central" 
-                  className="fill-purple-900 font-black" style={{ fontSize: size * 0.09 }}>
-              {i + 1}
-            </text>
-          );
-        })}
+      {/* Minute dots */}
+      {minuteDots.map((d, i) => (
+        <circle key={i} cx={d.x} cy={d.y} r={d.isHour ? 3.5 : 1.5} fill={d.isHour ? 'hsl(145, 63%, 45%)' : 'hsl(145, 63%, 50%)'} />
+      ))}
 
-        {/* Jarum Jam (Merah - Tebal) */}
-        <line
-          x1={cx} y1={cy}
-          x2={cx + (size * 0.25) * Math.sin((hourAngle * Math.PI) / 180)}
-          y2={cy - (size * 0.25) * Math.cos((hourAngle * Math.PI) / 180)}
-          stroke="#EF4444" strokeWidth="12" strokeLinecap="round" filter="url(#shadow)"
-          className="cursor-grab active:cursor-grabbing"
-          onPointerDown={(e) => { e.stopPropagation(); setDragging('hour'); }}
-        />
+      {/* Hour numbers (inner) */}
+      {hourNumbers.map(({ num, x, y }) => (
+        <text key={num} x={x} y={y} textAnchor="middle" dominantBaseline="central"
+          fill="hsl(266, 93%, 55%)" fontSize={size > 200 ? 20 : 14} fontWeight="bold" fontFamily="Fredoka">
+          {num}
+        </text>
+      ))}
 
-        {/* Jarum Menit (Biru - Sedang) */}
-        <line
-          x1={cx} y1={cy}
-          x2={cx + (size * 0.38) * Math.sin((minuteAngle * Math.PI) / 180)}
-          y2={cy - (size * 0.38) * Math.cos((minuteAngle * Math.PI) / 180)}
-          stroke="#3B82F6" strokeWidth="8" strokeLinecap="round" filter="url(#shadow)"
-          className="cursor-grab active:cursor-grabbing"
-          onPointerDown={(e) => { e.stopPropagation(); setDragging('minute'); }}
-        />
+      {/* Hour hand - RED */}
+      <line x1={cx} y1={cy} x2={hEnd.x} y2={hEnd.y}
+        stroke="hsl(0, 80%, 50%)" strokeWidth={7} strokeLinecap="round"
+        onPointerDown={handlePointerDown('hour')}
+        className={interactive ? 'cursor-grab active:cursor-grabbing' : ''} />
 
-        {/* Jarum Detik (Kuning - Tipis) */}
-        {!hideSeconds && (
-          <line
-            x1={cx} y1={cy}
-            x2={cx + (size * 0.42) * Math.sin((secondAngle * Math.PI) / 180)}
-            y2={cy - (size * 0.42) * Math.cos((secondAngle * Math.PI) / 180)}
-            stroke="#F59E0B" strokeWidth="3" strokeLinecap="round"
-          />
-        )}
+      {/* Minute hand - BLUE */}
+      <line x1={cx} y1={cy} x2={mEnd.x} y2={mEnd.y}
+        stroke="hsl(216, 100%, 50%)" strokeWidth={5} strokeLinecap="round"
+        onPointerDown={handlePointerDown('minute')}
+        className={interactive ? 'cursor-grab active:cursor-grabbing' : ''} />
 
-        {/* Poros Tengah Emas */}
-        <circle cx={cx} cy={cy} r={8} fill="#F59E0B" stroke="white" strokeWidth="3" />
-      </svg>
-    </div>
+      {/* Second hand */}
+      {!hideSeconds && (
+        <line x1={cx} y1={cy} x2={sEnd.x} y2={sEnd.y}
+          stroke="hsl(0, 0%, 30%)" strokeWidth={1.5} strokeLinecap="round" />
+      )}
+
+      {/* Center dot */}
+      <circle cx={cx} cy={cy} r={6} fill="hsl(45, 100%, 55%)" stroke="hsl(45, 80%, 40%)" strokeWidth={1} />
+
+      {/* Labels on hands */}
+      {showLabels && (
+        <>
+          <text x={handEnd(hourAngle, hourHandLen + 18).x} y={handEnd(hourAngle, hourHandLen + 18).y}
+            textAnchor="middle" dominantBaseline="central"
+            fill="hsl(0, 80%, 50%)" fontSize={11} fontWeight="bold" fontFamily="Fredoka">
+            Jam
+          </text>
+          <text x={handEnd(minuteAngle, minuteHandLen + 18).x} y={handEnd(minuteAngle, minuteHandLen + 18).y}
+            textAnchor="middle" dominantBaseline="central"
+            fill="hsl(216, 100%, 50%)" fontSize={11} fontWeight="bold" fontFamily="Fredoka">
+            Menit
+          </text>
+        </>
+      )}
+    </svg>
   );
 };
 

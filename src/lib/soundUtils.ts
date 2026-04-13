@@ -1,46 +1,25 @@
-// Menggunakan AudioContext tunggal untuk mencegah suara hilang/macet
-let audioCtx: AudioContext | null = null;
-
-function getAudioCtx() {
-  if (!audioCtx) {
-    const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
-    audioCtx = new AudioContextClass();
-  }
-  return audioCtx;
-}
+const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
 
 function playTone(freq: number, duration: number, type: OscillatorType = 'sine', volume = 0.3) {
   try {
-    const ctx = getAudioCtx();
-    
-    // Resume context jika dalam keadaan 'suspended' (kebijakan keamanan browser)
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
-
+    const ctx = new AudioCtx();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    
     osc.type = type;
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    
-    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    osc.frequency.value = freq;
+    gain.gain.value = volume;
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-    
     osc.connect(gain);
     gain.connect(ctx.destination);
-    
     osc.start();
     osc.stop(ctx.currentTime + duration);
-  } catch (err) {
-    console.warn("Audio Context Error:", err);
-  }
+  } catch {}
 }
 
 export function playCorrectSound() {
-  playTone(523, 0.15, 'sine', 0.4); // C5
-  setTimeout(() => playTone(659, 0.15, 'sine', 0.4), 100); // E5
-  setTimeout(() => playTone(784, 0.3, 'sine', 0.4), 200); // G5
+  playTone(523, 0.15, 'sine', 0.4);
+  setTimeout(() => playTone(659, 0.15, 'sine', 0.4), 100);
+  setTimeout(() => playTone(784, 0.3, 'sine', 0.4), 200);
 }
 
 export function playWrongSound() {

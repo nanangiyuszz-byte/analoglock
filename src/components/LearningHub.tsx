@@ -1,19 +1,67 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, BookOpen, Calculator, Globe, FlaskConical } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const subjects = [
-  { id: 'ipa', name: 'IPA', emoji: '🔬', icon: FlaskConical, color: 'from-green-400 to-emerald-600', desc: 'Sains & Alam' },
-  { id: 'mtk', name: 'MTK', emoji: '🔢', icon: Calculator, color: 'from-blue-400 to-indigo-600', desc: 'Berhitung' },
-  { id: 'bindo', name: 'B. INDO', emoji: '📖', icon: BookOpen, color: 'from-orange-400 to-red-500', desc: 'Literasi' },
-  { id: 'ips', name: 'IPS', emoji: '🌍', icon: Globe, color: 'from-purple-400 to-pink-500', desc: 'Sosial & Dunia' },
+  { id: 'ipa', name: 'IPA', emoji: '🔬', color: 'from-green-400 to-emerald-600', desc: 'Ilmu Pengetahuan Alam' },
+  { id: 'mtk', name: 'MTK', emoji: '🔢', color: 'from-blue-400 to-indigo-600', desc: 'Matematika' },
+  { id: 'bindo', name: 'B. INDO', emoji: '📖', color: 'from-orange-400 to-red-500', desc: 'Bahasa Indonesia' },
+  { id: 'ips', name: 'IPS', emoji: '🌍', color: 'from-purple-400 to-pink-500', desc: 'Ilmu Pengetahuan Sosial' },
 ];
 
 const subjectContent: Record<string, { title: string; topics: string[] }> = {
-  ipa: { title: 'Belajar IPA', topics: ['Sifat Cahaya', 'Makhluk Hidup', 'Energi & Listrik', 'Daur Air'] },
-  mtk: { title: 'Belajar Matematika', topics: ['Bilangan Bulat', 'Pecahan', 'Bangun Ruang', 'Satuan Waktu'] },
-  bindo: { title: 'Bahasa Indonesia', topics: ['Membaca Puisi', 'Menulis Cerita', 'Kalimat Efektif', 'Pantun'] },
-  ips: { title: 'Belajar IPS', topics: ['Peta & Globe', 'Kegiatan Ekonomi', 'Sejarah Pahlawan', 'Budaya'] },
+  ipa: { title: 'IPA - Ilmu Pengetahuan Alam', topics: ['Sifat Cahaya & Bayangan', 'Makhluk Hidup & Lingkungan', 'Energi & Perubahannya', 'Gaya & Gerak', 'Daur Air'] },
+  mtk: { title: 'MTK - Matematika', topics: ['Bilangan Bulat', 'Pecahan', 'Bangun Datar & Ruang', 'Pengukuran Waktu', 'Statistika Dasar'] },
+  bindo: { title: 'Bahasa Indonesia', topics: ['Membaca Pemahaman', 'Menulis Cerita', 'Puisi & Pantun', 'Tata Bahasa', 'Kalimat Efektif'] },
+  ips: { title: 'IPS - Ilmu Pengetahuan Sosial', topics: ['Keragaman Budaya', 'Peta & Globe', 'Sejarah Indonesia', 'Kegiatan Ekonomi', 'Lembaga Pemerintahan'] },
+};
+
+const MathChallenge: React.FC = () => {
+  const [score, setScore] = useState(0);
+  const [num1, setNum1] = useState(Math.floor(Math.random() * 50) + 1);
+  const [num2, setNum2] = useState(Math.floor(Math.random() * 50) + 1);
+  const [op, setOp] = useState<'+' | '-'>(Math.random() > 0.5 ? '+' : '-');
+  const [answer, setAnswer] = useState('');
+  const [feedback, setFeedback] = useState('');
+
+  const correctAnswer = op === '+' ? num1 + num2 : num1 - num2;
+
+  const generateNew = () => {
+    const n1 = Math.floor(Math.random() * 50) + 1;
+    const n2 = Math.floor(Math.random() * 50) + 1;
+    const newOp: '+' | '-' = Math.random() > 0.5 ? '+' : '-';
+    setNum1(newOp === '-' ? Math.max(n1, n2) : n1);
+    setNum2(newOp === '-' ? Math.min(n1, n2) : n2);
+    setOp(newOp);
+    setAnswer('');
+    setFeedback('');
+  };
+
+  const checkAnswer = () => {
+    if (parseInt(answer) === correctAnswer) {
+      setScore(s => s + 1);
+      setFeedback('🎉 Benar!');
+      setTimeout(generateNew, 800);
+    } else {
+      setFeedback(`❌ Salah! Jawaban: ${correctAnswer}`);
+      setTimeout(generateNew, 1500);
+    }
+  };
+
+  return (
+    <div className="bg-card rounded-2xl p-6 shadow-lg text-center space-y-4">
+      <h3 className="text-xl font-bold text-primary">⚡ Math Challenge</h3>
+      <p className="text-sm text-muted-foreground">Skor: {score}</p>
+      <p className="text-4xl font-bold text-foreground">{num1} {op} {num2} = ?</p>
+      <input type="number" value={answer} onChange={e => setAnswer(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && checkAnswer()}
+        className="w-32 text-center text-2xl border-2 border-border rounded-xl p-2 bg-background text-foreground"
+        placeholder="?" />
+      <div>
+        <button onClick={checkAnswer} className="bg-accent text-accent-foreground px-6 py-2 rounded-xl font-semibold">Jawab</button>
+      </div>
+      {feedback && <p className="text-lg font-bold">{feedback}</p>}
+    </div>
+  );
 };
 
 const LearningHub: React.FC = () => {
@@ -22,59 +70,38 @@ const LearningHub: React.FC = () => {
   if (activeSubject) {
     const content = subjectContent[activeSubject];
     return (
-      <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-        <button 
-          onClick={() => setActiveSubject(null)} 
-          className="flex items-center gap-2 text-purple-600 font-bold bg-purple-50 px-4 py-2 rounded-xl hover:bg-purple-100 transition-colors"
-        >
-          <ArrowLeft size={20} /> Kembali ke Menu
-        </button>
-        <div className="bg-white rounded-[32px] p-8 shadow-xl border-4 border-purple-100">
-          <h2 className="text-3xl font-black text-gray-800 mb-6">{content.title}</h2>
-          <div className="grid gap-4">
-            {content.topics.map((topic, i) => (
-              <motion.div 
-                key={i} 
-                initial={{ opacity: 0, y: 10 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: i * 0.1 }}
-                className="bg-gray-50 p-5 rounded-2xl font-bold text-gray-700 shadow-sm border-l-8 border-purple-400 flex items-center gap-3"
-              >
-                <span className="text-xl">📌</span> {topic}
-              </motion.div>
-            ))}
-          </div>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-lg mx-auto space-y-6">
+        <button onClick={() => setActiveSubject(null)} className="text-muted-foreground hover:text-foreground">← Kembali ke Hub</button>
+        <h2 className="text-2xl font-bold text-primary">{content.title}</h2>
+        <div className="space-y-3">
+          {content.topics.map((topic, i) => (
+            <motion.div key={i} initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.1 }}
+              className="bg-card rounded-xl p-4 shadow-sm border border-border">
+              <p className="font-semibold text-foreground">📌 {topic}</p>
+            </motion.div>
+          ))}
         </div>
+        {activeSubject === 'mtk' && <MathChallenge />}
       </motion.div>
     );
   }
 
   return (
-    <div className="w-full space-y-8">
-      <div className="text-center space-y-2">
-        <h2 className="text-3xl font-black text-gray-800">📚 Learning Hub</h2>
-        <p className="text-gray-500 font-medium">Pilih materi yang ingin kamu pelajari hari ini!</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-5">
-        {subjects.map((s) => (
-          <motion.button
-            key={s.id}
-            onClick={() => setActiveSubject(s.id)}
-            whileHover={{ scale: 1.05, rotate: 1 }}
-            whileTap={{ scale: 0.95 }}
-            className={`relative overflow-hidden bg-gradient-to-br ${s.color} rounded-[32px] p-8 text-white shadow-xl flex flex-col items-center gap-3 group`}
-          >
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-150 transition-transform">
-              <s.icon size={80} />
-            </div>
-            <span className="text-5xl mb-2">{s.emoji}</span>
-            <span className="font-black text-xl tracking-wide">{s.name}</span>
-            <span className="text-[10px] font-bold bg-white/20 px-3 py-1 rounded-full uppercase">{s.desc}</span>
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg mx-auto space-y-6">
+      <h2 className="text-2xl font-bold text-primary text-center">📚 Learning Hub</h2>
+      <div className="grid grid-cols-2 gap-4">
+        {subjects.map((s, i) => (
+          <motion.button key={s.id} onClick={() => setActiveSubject(s.id)}
+            initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.1 }}
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+            className={`bg-gradient-to-br ${s.color} rounded-2xl p-6 text-center shadow-lg`}>
+            <span className="text-4xl">{s.emoji}</span>
+            <p className="text-lg font-bold mt-2" style={{ color: 'white' }}>{s.name}</p>
+            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.8)' }}>{s.desc}</p>
           </motion.button>
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
