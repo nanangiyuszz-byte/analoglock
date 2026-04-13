@@ -1,19 +1,40 @@
-const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+// Singleton AudioContext untuk mencegah limit browser
+let audioCtx: AudioContext | null = null;
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    const AudioCtxClass = (window.AudioContext || (window as any).webkitAudioContext);
+    audioCtx = new AudioCtxClass();
+  }
+  return audioCtx;
+}
 
 function playTone(freq: number, duration: number, type: OscillatorType = 'sine', volume = 0.3) {
   try {
-    const ctx = new AudioCtx();
+    const ctx = getAudioCtx();
+    
+    // Resume context jika dalam keadaan suspended (kebijakan browser)
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    
     osc.type = type;
-    osc.frequency.value = freq;
-    gain.gain.value = volume;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    
+    gain.gain.setValueAtTime(volume, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    
     osc.connect(gain);
     gain.connect(ctx.destination);
+    
     osc.start();
     osc.stop(ctx.currentTime + duration);
-  } catch {}
+  } catch (err) {
+    console.error("Audio Error:", err);
+  }
 }
 
 export function playCorrectSound() {

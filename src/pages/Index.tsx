@@ -25,14 +25,21 @@ const Index: React.FC = () => {
           </button>
           <div className="flex-1">
             <h1 className="text-2xl sm:text-3xl font-extrabold" style={{ color: '#9D64FA' }}>Fun Clock Playground</h1>
-            <p className="text-sm sm:text-base font-semibold" style={{ color: '#64A0FF' }}>Ayo bermain dengan jam ajaib ini!</p>
+            <div className="mt-1">
+               <p className="text-[10px] sm:text-xs font-bold text-gray-600 uppercase tracking-wider leading-tight">
+                 Dikembangkan oleh: <span className="text-purple-600">Ladyus Azalea M. S.</span>
+               </p>
+               <p className="text-[10px] sm:text-xs font-bold text-gray-600 uppercase tracking-wider leading-tight">
+                 Tim Pendukung: <span className="text-blue-500">Hanifah Dinny A.</span>
+               </p>
+            </div>
           </div>
         </div>
       </header>
 
 
       {/* Main content */}
-      <main className="max-w-3xl mx-auto px-4 pb-12">
+      <main className="max-w-3xl mx-auto px-4 pb-12 pt-6">
         <motion.div key={page} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
           {page === 'home' && <ClockPlayground onStartQuiz={() => setPage('quiz')} />}
           {page === 'quiz' && <QuizSystem onBack={() => setPage('home')} />}
@@ -41,13 +48,10 @@ const Index: React.FC = () => {
         </motion.div>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-6 px-4 text-center space-y-1">
-        <p className="text-xs sm:text-sm text-muted-foreground">
-          © 2026 analogstudywebb2 | Dikembangkan oleh: <span className="font-semibold">Ladyus Azalea M. S.</span> (Dyzz_SMPN 31 SBY)
-        </p>
-        <p className="text-xs sm:text-sm text-muted-foreground">
-          Tim Pendukung: <span className="font-semibold">Hanifah Dinny A.</span> (Nifzz_SMPN 31 SBY)
+      {/* Footer Bersih */}
+      <footer className="border-t border-border py-4 px-4 text-center">
+        <p className="text-xs text-muted-foreground font-medium">
+          © 2026 analogstudywebb2 | Edukasi Jam Interaktif
         </p>
       </footer>
     </div>
