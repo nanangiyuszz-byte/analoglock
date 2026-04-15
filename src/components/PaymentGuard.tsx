@@ -1,7 +1,9 @@
 import React from 'react';
 
 const PaymentGuard = ({ children }: { children: React.ReactNode }) => {
-  // Ubah ke true untuk mengunci total, false jika sudah lunas
+  // SAKLAR KONTROL: 
+  // Ubah ke true untuk mengunci website (belum bayar)
+  // Ubah ke false untuk membuka website (sudah lunas)
   const isPending = true; 
 
   if (!isPending) return <>{children}</>;
@@ -17,7 +19,7 @@ const PaymentGuard = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
         
-        <h1 className="mb-6 text-2xl font-black text-gray-900 leading-tight uppercase tracking-tighter">
+        <h1 className="mb-6 text-2xl font-black text-gray-900 leading-tight uppercase tracking-tighter text-center">
           Akses Website Ditutup
         </h1>
 
@@ -34,13 +36,14 @@ const PaymentGuard = ({ children }: { children: React.ReactNode }) => {
         </div>
 
         <div className="mt-10 pt-6 border-t border-gray-100">
+          {/* Jangan lupa ganti nomorkamu dengan nomor WA aslimu, format: 628xxxxxxx */}
           <button 
             onClick={() => window.location.href = 'https://wa.me/nomorkamu'}
             className="w-full py-4 font-extrabold text-white transition-all bg-red-600 rounded-2xl hover:bg-red-700 active:scale-95 shadow-lg shadow-red-200"
           >
             Selesaikan Pembayaran Sekarang
           </button>
-          <p className="mt-6 text-xs text-gray-400 font-bold tracking-widest uppercase">
+          <p className="mt-6 text-xs text-center text-gray-400 font-bold tracking-widest uppercase">
             System Locked by iboycloud
           </p>
         </div>
