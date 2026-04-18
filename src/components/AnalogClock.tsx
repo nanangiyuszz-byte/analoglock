@@ -179,8 +179,6 @@ const AnalogClock: React.FC<AnalogClockProps> = ({
       )}
 
       <circle cx={cx} cy={cy} r={6} fill="hsl(45, 100%, 55%)" stroke="hsl(45, 80%, 40%)" strokeWidth={1} />
-      
-      {/* Label "Jam" dan "Menit" telah dihapus dari sini */}
     </svg>
   );
 };
