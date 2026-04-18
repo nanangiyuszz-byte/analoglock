@@ -20,6 +20,9 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
   const [dragMinutes, setDragMinutes] = useState(0);
   const [finished, setFinished] = useState(false);
   const [started, setStarted] = useState(false);
+  
+  // State baru untuk menyimpan nama
+  const [playerName, setPlayerName] = useState('');
 
   useEffect(() => {
     setQuestions(generateQuizQuestions(20));
@@ -28,6 +31,7 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
   const q = questions[currentIdx];
 
   const startQuiz = () => {
+    if (!playerName.trim()) return;
     playStartSound();
     setStarted(true);
   };
@@ -68,7 +72,14 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
 
   const nextQuestion = () => {
     if (currentIdx + 1 >= questions.length) {
-      const result = { date: new Date().toISOString(), correct, wrong: wrong, total: questions.length, score: Math.round((correct / questions.length) * 100) };
+      const result = { 
+        date: new Date().toISOString(), 
+        correct, 
+        wrong: wrong, 
+        total: questions.length, 
+        score: Math.round((correct / questions.length) * 100),
+        playerName: playerName || 'Anonim' // Nama disimpan ke history
+      };
       saveQuizResult(result);
       setFinished(true);
     } else {
@@ -82,10 +93,27 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
 
   if (!started) {
     return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-6 py-12">
-        <h2 className="text-3xl font-bold text-primary">🎯 Waktunya Kuis!</h2>
-        <p className="text-muted-foreground text-center max-w-md">20 pertanyaan acak tentang membaca dan mengatur jam. Siap?</p>
-        <button onClick={startQuiz} className="bg-accent text-accent-foreground px-8 py-3 rounded-2xl text-xl font-bold shadow-lg hover:scale-105 transition-transform">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-6 py-12 px-4">
+        <h2 className="text-3xl font-bold text-primary text-center">🎯 Waktunya Kuis!</h2>
+        <p className="text-muted-foreground text-center max-w-md">20 pertanyaan acak tentang membaca dan mengatur jam.</p>
+        
+        {/* Form Input Nama */}
+        <div className="w-full max-w-xs flex flex-col gap-2 mt-2">
+          <label className="text-sm font-bold text-slate-700 text-center">Masukkan Nama Kamu:</label>
+          <input
+            type="text"
+            placeholder="Contoh: Budi"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+            className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 text-lg text-center outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white"
+          />
+        </div>
+
+        <button 
+          onClick={startQuiz} 
+          disabled={!playerName.trim()}
+          className="bg-accent text-accent-foreground px-8 py-3 rounded-2xl text-xl font-bold shadow-lg hover:scale-105 transition-transform disabled:opacity-50 mt-2"
+        >
           Mulai Kuis! 🚀
         </button>
         <button onClick={onBack} className="text-muted-foreground underline">← Kembali</button>
@@ -96,9 +124,9 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
   if (finished) {
     const score = Math.round((correct / questions.length) * 100);
     return (
-      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center gap-6 py-12">
-        <h2 className="text-3xl font-bold text-primary">🎉 Quiz Selesai!</h2>
-        <div className="bg-card rounded-2xl p-8 shadow-xl text-center space-y-4">
+      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center gap-6 py-12 px-4">
+        <h2 className="text-3xl font-bold text-primary text-center">🎉 Selesai, {playerName}!</h2>
+        <div className="bg-card rounded-2xl p-8 shadow-xl text-center space-y-4 w-full max-w-sm">
           <div className="text-6xl font-bold text-primary">{score}%</div>
           <div className="flex gap-8 justify-center">
             <div><span className="text-2xl font-bold text-quiz-correct">{correct}</span><p className="text-sm text-muted-foreground">Benar ✅</p></div>
@@ -106,7 +134,7 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
           </div>
           <p className="text-muted-foreground">Total: {questions.length} soal</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap justify-center gap-3 w-full">
           <button onClick={() => { setQuestions(generateQuizQuestions(20)); setCurrentIdx(0); setCorrect(0); setWrong(0); setAnswered(false); setSelectedAnswer(null); setFinished(false); }}
             className="bg-accent text-accent-foreground px-6 py-2.5 rounded-xl font-semibold shadow-md">
             🔄 Ulangi Quiz
@@ -120,8 +148,7 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
   if (!q) return null;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto">
-      {/* Progress bar */}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto px-4 pb-8">
       <div className="w-full bg-muted rounded-full h-3">
         <div className="bg-primary h-3 rounded-full transition-all" style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }} />
       </div>
@@ -130,7 +157,6 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
         <span>✅ {correct} | ❌ {wrong}</span>
       </div>
 
-      {/* Question */}
       <AnimatePresence mode="wait">
         <motion.div key={q.id} initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -50, opacity: 0 }}
           className="w-full flex flex-col items-center gap-4">
@@ -138,7 +164,7 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
 
           {q.type === 'multiple-choice' ? (
             <>
-              <div className="bg-card rounded-2xl p-4 shadow-lg">
+              <div className="bg-card rounded-2xl p-4 shadow-lg flex justify-center w-full">
                 <AnalogClock size={200} hours={q.targetHours} minutes={q.targetMinutes} seconds={0} showLabels={false} hideSeconds />
               </div>
               <div className="grid grid-cols-2 gap-3 w-full">
@@ -159,19 +185,19 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
             </>
           ) : (
             <>
-              <div className="bg-card rounded-2xl p-4 shadow-lg">
+              <div className="bg-card rounded-2xl p-4 shadow-lg flex justify-center w-full">
                 <AnalogClock size={220} interactive={!answered} hours={dragHours} minutes={dragMinutes} seconds={0}
-                  onTimeChange={handleDragTimeChange} showLabels hideSeconds />
+                  onTimeChange={handleDragTimeChange} showLabels={false} hideSeconds />
               </div>
-              <p className="text-sm text-muted-foreground">Seret jarum jam untuk mengatur waktu</p>
+              <p className="text-sm text-muted-foreground text-center">Seret jarum jam untuk mengatur waktu</p>
               {!answered && (
                 <button onClick={handleDragSubmit}
-                  className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl font-semibold shadow-md">
+                  className="bg-primary text-primary-foreground px-6 py-2.5 rounded-xl font-semibold shadow-md w-full sm:w-auto">
                   ✅ Submit Jawaban
                 </button>
               )}
               {answered && (
-                <p className={`font-bold text-lg ${selectedAnswer === 'correct' ? 'text-quiz-correct' : 'text-quiz-wrong'}`}>
+                <p className={`font-bold text-lg text-center ${selectedAnswer === 'correct' ? 'text-quiz-correct' : 'text-quiz-wrong'}`}>
                   {selectedAnswer === 'correct' ? '🎉 Benar!' : `❌ Salah! Jawaban: ${formatTime(q.targetHours, q.targetMinutes)}`}
                 </p>
               )}
@@ -182,7 +208,7 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
 
       {answered && (
         <motion.button initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} onClick={nextQuestion}
-          className="bg-secondary text-secondary-foreground px-6 py-2.5 rounded-xl font-semibold shadow-md">
+          className="bg-secondary text-secondary-foreground px-6 py-3 rounded-xl font-semibold shadow-md w-full mt-4">
           {currentIdx + 1 < questions.length ? 'Soal Berikutnya →' : 'Lihat Hasil 🏆'}
         </motion.button>
       )}

@@ -51,14 +51,12 @@ const ClockPlayground: React.FC<ClockPlaygroundProps> = ({ onStartQuiz }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center gap-5 w-full max-w-lg mx-auto"
+      className="flex flex-col items-center gap-5 w-full max-w-lg mx-auto pb-6"
     >
-      {/* Legend */}
       <div className="text-center text-base font-bold text-foreground">
         Legenda: <span className="text-[hsl(0,80%,50%)]">🔴 Jam</span> | <span className="text-[hsl(216,100%,50%)]">🔵 Menit</span>
       </div>
 
-      {/* Theme Picker */}
       <div className="flex gap-2 flex-wrap justify-center">
         {THEMES.map(t => (
           <button key={t.name} onClick={() => setTheme(t.class)}
@@ -67,8 +65,7 @@ const ClockPlayground: React.FC<ClockPlaygroundProps> = ({ onStartQuiz }) => {
         ))}
       </div>
 
-      {/* Clock container */}
-      <div className={`${theme} rounded-3xl p-4 sm:p-6 shadow-xl transition-colors duration-300`}>
+      <div className={`${theme} rounded-3xl p-4 sm:p-6 shadow-xl transition-colors duration-300 w-full flex justify-center`}>
         <AnalogClock
           size={280}
           interactive={!isRealtime}
@@ -76,11 +73,10 @@ const ClockPlayground: React.FC<ClockPlaygroundProps> = ({ onStartQuiz }) => {
           minutes={displayM}
           seconds={displayS}
           onTimeChange={handleTimeChange}
-          showLabels
+          showLabels={false} 
         />
       </div>
 
-      {/* Digital display */}
       {showDigital && (
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
@@ -93,26 +89,27 @@ const ClockPlayground: React.FC<ClockPlaygroundProps> = ({ onStartQuiz }) => {
         </motion.div>
       )}
 
-      {/* Controls - two main buttons in a row */}
-      <div className="flex gap-3 justify-center w-full">
-        <button onClick={handleRandomTime}
-          className="flex-1 max-w-[180px] bg-accent text-accent-foreground px-4 py-3 rounded-xl font-bold shadow-md hover:opacity-90 transition text-sm">
-          🎲 Waktu Acak
-        </button>
-        <button onClick={() => setShowDigital(!showDigital)}
-          className="flex-1 max-w-[180px] bg-secondary text-secondary-foreground px-4 py-3 rounded-xl font-bold shadow-md hover:opacity-90 transition text-sm">
-          {showDigital ? '🙈 Sembunyikan' : '👁 Tampilkan'}
+      {/* Update teks tombol agar lebih deskriptif */}
+      <div className="flex flex-col gap-3 justify-center w-full px-4">
+        <div className="flex gap-3 justify-center w-full">
+          <button onClick={handleRandomTime}
+            className="flex-1 bg-accent text-accent-foreground px-4 py-3 rounded-xl font-bold shadow-md hover:opacity-90 transition text-sm">
+            🎲 Waktu Acak
+          </button>
+          <button onClick={() => setShowDigital(!showDigital)}
+            className="flex-1 bg-secondary text-secondary-foreground px-2 py-3 rounded-xl font-bold shadow-md hover:opacity-90 transition text-sm text-center">
+            {showDigital ? '🙈 Sembunyikan Jam Digital' : '👁 Tampilkan Jam Digital'}
+          </button>
+        </div>
+
+        <button onClick={() => setIsRealtime(true)}
+          className="w-full bg-muted text-foreground px-5 py-3 rounded-xl font-semibold shadow-md hover:opacity-90 transition text-sm">
+          🕐 Waktu Nyata
         </button>
       </div>
 
-      <button onClick={() => setIsRealtime(true)}
-        className="bg-muted text-foreground px-5 py-2.5 rounded-xl font-semibold shadow-md hover:opacity-90 transition text-sm">
-        🕐 Waktu Nyata
-      </button>
-
-      {/* Next button */}
       <button onClick={onStartQuiz}
-        className="w-full max-w-xs bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-bold text-lg shadow-lg hover:opacity-90 transition animate-pulse-glow">
+        className="w-full max-w-xs bg-primary text-primary-foreground px-6 py-3 rounded-2xl font-bold text-lg shadow-lg hover:opacity-90 transition animate-pulse-glow mt-2">
         Selanjutnya ➡️
       </button>
     </motion.div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Trash2 } from 'lucide-react';
+import { Trash2, User } from 'lucide-react'; // Tambah icon User
 
 interface QuizResult {
   date: string;
@@ -8,6 +8,7 @@ interface QuizResult {
   wrong: number;
   score: number;
   subject?: string;
+  playerName?: string; // Tambahkan playerName di interface
 }
 
 const ProgressHistory: React.FC = () => {
@@ -26,7 +27,7 @@ const ProgressHistory: React.FC = () => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg mx-auto space-y-6">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg mx-auto space-y-6 px-4">
       <div className="flex items-center justify-between px-2">
         <h2 className="text-2xl font-black text-primary uppercase italic">📊 Riwayat Progress</h2>
         {results.length > 0 && (
@@ -43,18 +44,22 @@ const ProgressHistory: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="space-y-3">
+          <div className="space-y-3 pb-8">
             {[...results].reverse().map((r, i) => (
               <motion.div key={i} initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.05 }}
                 className="bg-white rounded-2xl p-4 shadow-sm border-2 border-slate-100 flex justify-between items-center group">
-                <div>
-                  <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
                     <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded uppercase">{r.subject || 'QUIZ'}</span>
                     <p className="text-[10px] font-bold text-muted-foreground">{new Date(r.date).toLocaleDateString('id-ID')}</p>
                   </div>
-                  <p className="font-black text-slate-800 mt-1">✅ {r.correct} Benar / ❌ {r.wrong} Salah</p>
+                  {/* Menampilkan Nama */}
+                  <div className="flex items-center gap-1 text-slate-700 font-bold text-sm mb-1">
+                     <User size={14} /> <span>{r.playerName || 'Anonim'}</span>
+                  </div>
+                  <p className="font-black text-slate-800 text-xs">✅ {r.correct} Benar / ❌ {r.wrong} Salah</p>
                 </div>
-                <div className="text-2xl font-black text-primary group-hover:scale-110 transition-transform">{r.score}%</div>
+                <div className="text-3xl font-black text-primary group-hover:scale-110 transition-transform pl-4">{r.score}%</div>
               </motion.div>
             ))}
           </div>

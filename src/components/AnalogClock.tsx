@@ -91,14 +91,12 @@ const AnalogClock: React.FC<AnalogClockProps> = ({
     setDragging(null);
   }, []);
 
-  // Layout: we need extra space for outer minute numbers
   const padding = 35;
   const totalSize = size + padding * 2;
   const cx = totalSize / 2;
   const cy = totalSize / 2;
   const r = size / 2 - 10;
 
-  // Outer minute numbers (0, 5, 10, ... 55)
   const minuteNumbers = Array.from({ length: 12 }, (_, i) => {
     const num = i * 5;
     const angle = (num * 6 - 90) * (Math.PI / 180);
@@ -106,7 +104,6 @@ const AnalogClock: React.FC<AnalogClockProps> = ({
     return { num, x: cx + nr * Math.cos(angle), y: cy + nr * Math.sin(angle) };
   });
 
-  // Inner hour numbers (1-12)
   const hourNumbers = Array.from({ length: 12 }, (_, i) => {
     const num = i + 1;
     const angle = (num * 30 - 90) * (Math.PI / 180);
@@ -114,7 +111,6 @@ const AnalogClock: React.FC<AnalogClockProps> = ({
     return { num, x: cx + nr * Math.cos(angle), y: cy + nr * Math.sin(angle) };
   });
 
-  // Minute tick dots
   const minuteDots = Array.from({ length: 60 }, (_, i) => {
     const angle = (i * 6 - 90) * (Math.PI / 180);
     const dr = r - 8;
@@ -146,7 +142,6 @@ const AnalogClock: React.FC<AnalogClockProps> = ({
       onPointerLeave={handlePointerUp}
       className="select-none touch-none"
     >
-      {/* Outer minute numbers */}
       {minuteNumbers.map(({ num, x, y }) => (
         <text key={`m${num}`} x={x} y={y} textAnchor="middle" dominantBaseline="central"
           fill="hsl(0, 0%, 40%)" fontSize={size > 200 ? 13 : 10} fontWeight="bold" fontFamily="Fredoka">
@@ -154,16 +149,13 @@ const AnalogClock: React.FC<AnalogClockProps> = ({
         </text>
       ))}
 
-      {/* Outer ring */}
       <circle cx={cx} cy={cy} r={r} fill="none" stroke="hsl(45, 100%, 60%)" strokeWidth={8} />
       <circle cx={cx} cy={cy} r={r - 12} fill="hsl(0, 0%, 100%)" stroke="hsl(250, 20%, 88%)" strokeWidth={1} />
 
-      {/* Minute dots */}
       {minuteDots.map((d, i) => (
         <circle key={i} cx={d.x} cy={d.y} r={d.isHour ? 3.5 : 1.5} fill={d.isHour ? 'hsl(145, 63%, 45%)' : 'hsl(145, 63%, 50%)'} />
       ))}
 
-      {/* Hour numbers (inner) */}
       {hourNumbers.map(({ num, x, y }) => (
         <text key={num} x={x} y={y} textAnchor="middle" dominantBaseline="central"
           fill="hsl(266, 93%, 55%)" fontSize={size > 200 ? 20 : 14} fontWeight="bold" fontFamily="Fredoka">
@@ -171,42 +163,24 @@ const AnalogClock: React.FC<AnalogClockProps> = ({
         </text>
       ))}
 
-      {/* Hour hand - RED */}
       <line x1={cx} y1={cy} x2={hEnd.x} y2={hEnd.y}
         stroke="hsl(0, 80%, 50%)" strokeWidth={7} strokeLinecap="round"
         onPointerDown={handlePointerDown('hour')}
         className={interactive ? 'cursor-grab active:cursor-grabbing' : ''} />
 
-      {/* Minute hand - BLUE */}
       <line x1={cx} y1={cy} x2={mEnd.x} y2={mEnd.y}
         stroke="hsl(216, 100%, 50%)" strokeWidth={5} strokeLinecap="round"
         onPointerDown={handlePointerDown('minute')}
         className={interactive ? 'cursor-grab active:cursor-grabbing' : ''} />
 
-      {/* Second hand */}
       {!hideSeconds && (
         <line x1={cx} y1={cy} x2={sEnd.x} y2={sEnd.y}
           stroke="hsl(0, 0%, 30%)" strokeWidth={1.5} strokeLinecap="round" />
       )}
 
-      {/* Center dot */}
       <circle cx={cx} cy={cy} r={6} fill="hsl(45, 100%, 55%)" stroke="hsl(45, 80%, 40%)" strokeWidth={1} />
-
-      {/* Labels on hands */}
-      {showLabels && (
-        <>
-          <text x={handEnd(hourAngle, hourHandLen + 18).x} y={handEnd(hourAngle, hourHandLen + 18).y}
-            textAnchor="middle" dominantBaseline="central"
-            fill="hsl(0, 80%, 50%)" fontSize={11} fontWeight="bold" fontFamily="Fredoka">
-            Jam
-          </text>
-          <text x={handEnd(minuteAngle, minuteHandLen + 18).x} y={handEnd(minuteAngle, minuteHandLen + 18).y}
-            textAnchor="middle" dominantBaseline="central"
-            fill="hsl(216, 100%, 50%)" fontSize={11} fontWeight="bold" fontFamily="Fredoka">
-            Menit
-          </text>
-        </>
-      )}
+      
+      {/* Label "Jam" dan "Menit" telah dihapus dari sini */}
     </svg>
   );
 };
