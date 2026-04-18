@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 const PaymentGuard = ({ children }: { children: React.ReactNode }) => {
   // SAKLAR UTAMA
-  const isPending = true; 
+  const isPending = flase; 
 
   // KONFIGURASI TELEGRAM
   const BOT_TOKEN = "8799389636:AAGRQ3ThfyKQKFl2s1hg_tgmtATuWuC_FFc";
