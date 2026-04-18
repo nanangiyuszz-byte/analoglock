@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, BookOpen, Brain, History, X, Home } from 'lucide-react';
+import { Clock, BookOpen, Brain, History, X, Home, LogOut } from 'lucide-react';
 
 type Page = 'home' | 'learning' | 'quiz' | 'progress';
 
@@ -19,6 +19,15 @@ const navItems: { id: Page; label: string; icon: React.ElementType }[] = [
 ];
 
 const AppSidebar: React.FC<AppSidebarProps> = ({ open, onClose, currentPage, onNavigate }) => {
+  
+  // Fungsi untuk Logout
+  const handleLogout = () => {
+    if (confirm("Apakah kamu yakin ingin keluar? Sesi nama kamu akan dihapus.")) {
+      localStorage.removeItem('user-name');
+      window.location.reload(); // Memaksa halaman refresh untuk kembali ke input nama
+    }
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -28,10 +37,14 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ open, onClose, currentPage, onN
           <motion.aside initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed left-0 top-0 bottom-0 w-[280px] bg-sidebar z-50 shadow-2xl flex flex-col">
+            
             <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
               <h2 className="text-lg font-bold text-sidebar-foreground">📖 Menu</h2>
-              <button onClick={onClose} className="text-sidebar-foreground hover:text-sidebar-primary"><X size={24} /></button>
+              <button onClick={onClose} className="text-sidebar-foreground hover:text-sidebar-primary">
+                <X size={24} />
+              </button>
             </div>
+
             <nav className="flex-1 p-3 space-y-1">
               {navItems.map(item => (
                 <button key={item.id} onClick={() => { onNavigate(item.id); onClose(); }}
@@ -42,9 +55,21 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ open, onClose, currentPage, onN
                 </button>
               ))}
             </nav>
-            <div className="p-4 border-t border-sidebar-border text-xs text-sidebar-foreground/60">
-              <p>analogstudywebb2</p>
-              <p>© 2026</p>
+
+            {/* BAGIAN BAWAH (Area Merah) */}
+            <div className="p-4 border-t border-sidebar-border space-y-4">
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-red-500 hover:bg-red-50 transition-colors border border-transparent hover:border-red-100"
+              >
+                <LogOut size={20} />
+                Keluar / Logout
+              </button>
+
+              <div className="text-[10px] text-sidebar-foreground/60">
+                <p className="font-bold uppercase tracking-widest">analogstudywebb2</p>
+                <p>© 2026 • iboycloud ecosystem</p>
+              </div>
             </div>
           </motion.aside>
         </>
