@@ -2,8 +2,9 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AnalogClock from './AnalogClock';
 import { generateQuizQuestions, QuizQuestion, saveQuizResult } from '@/lib/quizUtils';
-import { formatTime, getTimeFromAngles, getAngleFromTime } from '@/lib/clockUtils';
+import { formatTime } from '@/lib/clockUtils';
 import { playCorrectSound, playWrongSound, playStartSound } from '@/lib/soundUtils';
+import { Trophy, ArrowRight, RotateCcw, Home } from 'lucide-react';
 
 interface QuizSystemProps {
   onBack: () => void;
@@ -21,6 +22,7 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
   const [finished, setFinished] = useState(false);
   const [started, setStarted] = useState(false);
 
+  // Load pertanyaan saat komponen dipasang
   useEffect(() => {
     setQuestions(generateQuizQuestions(20));
   }, []);
@@ -48,6 +50,7 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
   const handleDragSubmit = () => {
     if (answered) return;
     setAnswered(true);
+    // Toleransi 2 menit untuk input drag
     const hDiff = Math.abs(dragHours - q.targetHours) % 12;
     const mDiff = Math.abs(dragMinutes - q.targetMinutes);
     if (hDiff === 0 && mDiff <= 2) {
@@ -68,15 +71,15 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
 
   const nextQuestion = () => {
     if (currentIdx + 1 >= questions.length) {
-      // Ambil nama dari localStorage untuk disimpan ke history
-      const savedName = localStorage.getItem('user-name') || 'Anonim';
+      // PROSES SIMPAN DATA KE HISTORY
+      const savedName = localStorage.getItem('user-name') || 'Pelajar';
       const result = { 
         date: new Date().toISOString(), 
         correct, 
         wrong, 
         total: questions.length, 
         score: Math.round((correct / questions.length) * 100),
-        playerName: savedName
+        playerName: savedName // Menyimpan nama ke record history
       };
       saveQuizResult(result);
       setFinished(true);
@@ -89,36 +92,53 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
     }
   };
 
+  // Tampilan Awal (Start Screen)
   if (!started) {
     return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-6 py-12">
-        <h2 className="text-3xl font-bold text-primary">🎯 Siap Beraksi?</h2>
-        <p className="text-muted-foreground text-center max-w-md">20 pertanyaan kuis jam sudah menantimu. Buktikan kemampuanmu!</p>
-        <button onClick={startQuiz} className="bg-accent text-accent-foreground px-8 py-3 rounded-2xl text-xl font-bold shadow-lg hover:scale-105 transition-transform">
-          Mulai Sekarang! 🚀
+      <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center gap-6 py-12 px-6 text-center">
+        <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+          <Trophy size={48} className="text-primary" />
+        </div>
+        <h2 className="text-4xl font-black text-slate-800 italic uppercase">Siap Uji Nyali?</h2>
+        <p className="text-muted-foreground font-medium max-w-xs">Selesaikan 20 soal kuis jam untuk mendapatkan skor terbaik!</p>
+        <button onClick={startQuiz} className="w-full max-w-xs bg-primary text-white px-8 py-4 rounded-2xl text-xl font-black shadow-xl hover:scale-105 transition-all uppercase tracking-widest">
+          Mulai Kuis 🚀
         </button>
-        <button onClick={onBack} className="text-muted-foreground underline">← Kembali</button>
+        <button onClick={onBack} className="text-slate-400 font-bold hover:text-primary transition-colors">← Kembali</button>
       </motion.div>
     );
   }
 
+  // Tampilan Selesai (Result Screen)
   if (finished) {
     const score = Math.round((correct / questions.length) * 100);
     const savedName = localStorage.getItem('user-name') || 'Sobat';
     return (
-      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center gap-6 py-12">
-        <h2 className="text-3xl font-bold text-primary text-center">🎉 Luar Biasa, {savedName}!</h2>
-        <div className="bg-card rounded-2xl p-8 shadow-xl text-center space-y-4">
-          <div className="text-6xl font-bold text-primary">{score}%</div>
-          <div className="flex gap-8 justify-center">
-            <div><span className="text-2xl font-bold text-quiz-correct">{correct}</span><p className="text-sm text-muted-foreground">Benar ✅</p></div>
-            <div><span className="text-2xl font-bold text-quiz-wrong">{wrong}</span><p className="text-sm text-muted-foreground">Salah ❌</p></div>
+      <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center gap-6 py-12 px-6">
+        <h2 className="text-3xl font-black text-slate-800 text-center uppercase italic">Hebat, {savedName}!</h2>
+        <div className="bg-white rounded-[2.5rem] p-10 shadow-2xl border-2 border-slate-50 text-center space-y-6 w-full max-w-sm">
+          <div className="relative inline-flex items-center justify-center">
+             <div className="text-6xl font-black text-primary">{score}%</div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-green-50 p-4 rounded-2xl">
+              <span className="text-2xl font-black text-green-600">{correct}</span>
+              <p className="text-[10px] font-bold text-green-700/60 uppercase">Benar</p>
+            </div>
+            <div className="bg-red-50 p-4 rounded-2xl">
+              <span className="text-2xl font-black text-red-500">{wrong}</span>
+              <p className="text-[10px] font-bold text-red-600/60 uppercase">Salah</p>
+            </div>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 w-full max-w-xs">
           <button onClick={() => { setQuestions(generateQuizQuestions(20)); setCurrentIdx(0); setCorrect(0); setWrong(0); setAnswered(false); setSelectedAnswer(null); setFinished(false); }}
-            className="bg-accent text-accent-foreground px-6 py-2.5 rounded-xl font-semibold shadow-md"> Ulangi </button>
-          <button onClick={onBack} className="bg-muted text-foreground px-6 py-2.5 rounded-xl font-semibold shadow-md"> Menu Utama </button>
+            className="flex items-center justify-center gap-2 bg-slate-900 text-white py-4 rounded-2xl font-black shadow-lg uppercase tracking-widest text-sm">
+            <RotateCcw size={18} /> Ulangi Kuis
+          </button>
+          <button onClick={onBack} className="flex items-center justify-center gap-2 bg-slate-100 text-slate-600 py-4 rounded-2xl font-black uppercase tracking-widest text-sm">
+            <Home size={18} /> Menu Utama
+          </button>
         </div>
       </motion.div>
     );
@@ -127,67 +147,87 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
   if (!q) return null;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto">
-      <div className="w-full bg-muted rounded-full h-3">
-        <div className="bg-primary h-3 rounded-full transition-all" style={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }} />
-      </div>
-      <div className="flex justify-between w-full text-sm text-muted-foreground px-2">
-        <span>Soal {currentIdx + 1}/20</span>
-        <span>✅ {correct} | ❌ {wrong}</span>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-6 w-full max-w-md mx-auto px-4 pb-10">
+      {/* Top Header & Progress */}
+      <div className="w-full space-y-3">
+        <div className="flex justify-between items-end">
+          <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+            Soal {currentIdx + 1} / {questions.length}
+          </div>
+          <div className="flex gap-2">
+            <span className="text-xs font-bold text-green-600">✅ {correct}</span>
+            <span className="text-xs font-bold text-red-500">❌ {wrong}</span>
+          </div>
+        </div>
+        <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: `${((currentIdx + 1) / questions.length) * 100}%` }}
+            className="bg-primary h-full rounded-full" 
+          />
+        </div>
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.div key={q.id} initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -50, opacity: 0 }}
-          className="w-full flex flex-col items-center gap-4">
-          <h3 className="text-lg font-bold text-center px-4">{q.questionText}</h3>
+        <motion.div key={q.id} initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }}
+          className="w-full flex flex-col items-center gap-6">
+          
+          <h3 className="text-xl font-extrabold text-center text-slate-800 leading-tight">
+            {q.questionText}
+          </h3>
 
           {q.type === 'multiple-choice' ? (
-            <>
-              <div className="bg-card rounded-2xl p-4 shadow-lg">
+            <div className="w-full space-y-6">
+              <div className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 flex justify-center border border-slate-50">
                 <AnalogClock size={200} hours={q.targetHours} minutes={q.targetMinutes} seconds={0} showLabels={false} hideSeconds />
               </div>
-              <div className="grid grid-cols-2 gap-3 w-full px-4">
+              <div className="grid grid-cols-2 gap-3">
                 {q.options!.map(opt => {
-                  let bg = 'bg-card hover:bg-muted';
+                  let styles = "bg-white border-slate-200 text-slate-700 hover:border-primary hover:bg-primary/5";
                   if (answered) {
-                    if (opt === q.correctAnswer) bg = 'bg-quiz-correct/20 border-quiz-correct';
-                    else if (opt === selectedAnswer) bg = 'bg-quiz-wrong/20 border-quiz-wrong';
+                    if (opt === q.correctAnswer) styles = "bg-green-500 border-green-500 text-white shadow-lg shadow-green-200";
+                    else if (opt === selectedAnswer) styles = "bg-red-500 border-red-500 text-white shadow-lg shadow-red-200";
+                    else styles = "bg-slate-50 border-slate-100 text-slate-300 opacity-50";
                   }
                   return (
-                    <button key={opt} onClick={() => handleMCAnswer(opt)}
-                      className={`${bg} border-2 rounded-xl p-3 text-lg font-bold transition shadow-sm`}>
+                    <button key={opt} onClick={() => handleMCAnswer(opt)} disabled={answered}
+                      className={`${styles} border-2 rounded-2xl py-4 text-lg font-black transition-all transform active:scale-95`}>
                       {opt}
                     </button>
                   );
                 })}
               </div>
-            </>
+            </div>
           ) : (
-            <>
-              <div className="bg-card rounded-2xl p-4 shadow-lg">
-                <AnalogClock size={220} interactive={!answered} hours={dragHours} minutes={dragMinutes} seconds={0}
+            <div className="w-full flex flex-col items-center gap-6">
+              <div className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/50 border border-slate-50">
+                <AnalogClock size={240} interactive={!answered} hours={dragHours} minutes={dragMinutes} seconds={0}
                   onTimeChange={handleDragTimeChange} showLabels={false} hideSeconds />
               </div>
-              {!answered && (
+              
+              {!answered ? (
                 <button onClick={handleDragSubmit}
-                  className="bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold shadow-md">
-                  Submit Jawaban
+                  className="w-full bg-primary text-white py-4 rounded-2xl font-black shadow-lg shadow-primary/20 uppercase tracking-widest transform active:scale-95">
+                  Kunci Jawaban 🔒
                 </button>
+              ) : (
+                <div className={`w-full p-4 rounded-2xl text-center font-black ${selectedAnswer === 'correct' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {selectedAnswer === 'correct' ? '✨ LUAR BIASA! BENAR!' : `⚠️ KURANG TEPAT! (${formatTime(q.targetHours, q.targetMinutes)})`}
+                </div>
               )}
-              {answered && (
-                <p className={`font-bold text-xl ${selectedAnswer === 'correct' ? 'text-quiz-correct' : 'text-quiz-wrong'}`}>
-                  {selectedAnswer === 'correct' ? '🎉 Tepat Sekali!' : `❌ Kurang Tepat! (${formatTime(q.targetHours, q.targetMinutes)})`}
-                </p>
-              )}
-            </>
+            </div>
           )}
         </motion.div>
       </AnimatePresence>
 
       {answered && (
-        <motion.button initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} onClick={nextQuestion}
-          className="bg-secondary text-secondary-foreground px-10 py-3 rounded-xl font-bold shadow-md mt-4">
-          Lanjut Soal Berikutnya →
+        <motion.button 
+          initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} 
+          onClick={nextQuestion}
+          className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 shadow-xl hover:bg-slate-800 transition-all uppercase tracking-widest"
+        >
+          {currentIdx + 1 < questions.length ? 'Soal Selanjutnya' : 'Lihat Skor Akhir'}
+          <ArrowRight size={20} />
         </motion.button>
       )}
     </motion.div>
