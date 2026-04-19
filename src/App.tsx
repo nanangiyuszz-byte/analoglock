@@ -13,19 +13,27 @@ const queryClient = new QueryClient();
 const App = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
+  // State untuk menyimpan jenjang sekolah
+  const [schoolLevel, setSchoolLevel] = useState("");
 
   // Cek apakah user sudah pernah "login" sebelumnya
   useEffect(() => {
     const savedName = localStorage.getItem("user-name");
+    const savedLevel = localStorage.getItem("user-school-level");
     if (savedName) {
       setUserName(savedName);
+    }
+    if (savedLevel) {
+      setSchoolLevel(savedLevel);
     }
   }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim().length >= 2) {
+    // Validasi: Nama minimal 2 karakter DAN jenjang sekolah harus dipilih
+    if (inputValue.trim().length >= 2 && schoolLevel !== "") {
       localStorage.setItem("user-name", inputValue.trim());
+      localStorage.setItem("user-school-level", schoolLevel);
       setUserName(inputValue.trim());
     }
   };
@@ -52,7 +60,7 @@ const App = () => {
                     FUN CLOCK ⏰
                   </h1>
                   <p className="text-muted-foreground font-medium">
-                    Masukkan namamu untuk memulai petualangan kuis!
+                    Masukkan namamu dan pilih sekolahmu!
                   </p>
                 </div>
 
@@ -62,15 +70,36 @@ const App = () => {
                     placeholder="Ketik namamu di sini..."
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="w-full px-6 py-4 rounded-2xl border-2 border-primary/20 focus:border-primary outline-none text-center text-xl font-bold transition-all shadow-sm"
+                    className="w-full px-6 py-4 rounded-2xl border-2 border-primary/20 focus:border-primary outline-none text-center text-xl font-bold transition-all shadow-sm bg-card"
                     autoFocus
                   />
+
+                  {/* Dropdown Pilihan Sekolah */}
+                  <div className="relative group">
+                    <select
+                      value={schoolLevel}
+                      onChange={(e) => setSchoolLevel(e.target.value)}
+                      className="w-full px-6 py-4 rounded-2xl border-2 border-primary/20 focus:border-primary outline-none text-center text-lg font-bold transition-all shadow-sm bg-card appearance-none cursor-pointer text-foreground"
+                    >
+                      <option value="" disabled>--- Pilih Asal Sekolah ---</option>
+                      <option value="SD">Sekolah Dasar (SD)</option>
+                      <option value="SMP">Sekolah Menengah Pertama (SMP)</option>
+                      <option value="SMA">Sekolah Menengah Atas (SMA)</option>
+                    </select>
+                    {/* Ikon panah kustom agar terlihat lebih premium */}
+                    <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none">
+                      <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                  </div>
+
                   <button
                     type="submit"
-                    disabled={inputValue.trim().length < 2}
-                    className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-black text-lg shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100"
+                    disabled={inputValue.trim().length < 2 || schoolLevel === ""}
+                    className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-black text-lg shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-40 disabled:hover:scale-100"
                   >
-                    MASUK SEKARANG 🚀
+                    MULAI BELAJAR 🚀
                   </button>
                 </form>
                 
