@@ -68,7 +68,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({ open, onClose, currentPage, onN
 
               <div className="text-[10px] text-sidebar-foreground/60">
                 <p className="font-bold uppercase tracking-widest">analogstudywebb2</p>
-                <p>© 2026 • iboycloud ecosystem</p>
+                <p>© 2026 • analogClok</p>
               </div>
             </div>
           </motion.aside>
