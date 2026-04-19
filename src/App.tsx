@@ -13,10 +13,10 @@ const queryClient = new QueryClient();
 const App = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
-  // State untuk menyimpan jenjang sekolah
+  // State baru untuk menyimpan pilihan jenjang sekolah
   const [schoolLevel, setSchoolLevel] = useState("");
 
-  // Cek apakah user sudah pernah "login" sebelumnya
+  // Mengecek data login yang tersimpan di localStorage saat aplikasi dimuat
   useEffect(() => {
     const savedName = localStorage.getItem("user-name");
     const savedLevel = localStorage.getItem("user-school-level");
@@ -46,7 +46,7 @@ const App = () => {
         
         <AnimatePresence mode="wait">
           {!userName ? (
-            /* TAMPILAN LOGIN / INPUT NAMA AWAL */
+            /* TAMPILAN LOGIN / INPUT NAMA & SEKOLAH */
             <motion.div 
               key="login"
               initial={{ opacity: 0 }}
@@ -60,11 +60,12 @@ const App = () => {
                     FUN CLOCK ⏰
                   </h1>
                   <p className="text-muted-foreground font-medium">
-                    Masukkan namamu dan pilih sekolahmu!
+                    Masukkan namamu dan pilih jenjang sekolahmu!
                   </p>
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-4">
+                  {/* Input Nama */}
                   <input
                     type="text"
                     placeholder="Ketik namamu di sini..."
@@ -74,7 +75,7 @@ const App = () => {
                     autoFocus
                   />
 
-                  {/* Dropdown Pilihan Sekolah */}
+                  {/* Dropdown Pilihan Sekolah (Kreatif & Clean) */}
                   <div className="relative group">
                     <select
                       value={schoolLevel}
@@ -86,7 +87,7 @@ const App = () => {
                       <option value="SMP">Sekolah Menengah Pertama (SMP)</option>
                       <option value="SMA">Sekolah Menengah Atas (SMA)</option>
                     </select>
-                    {/* Ikon panah kustom agar terlihat lebih premium */}
+                    {/* Ikon panah kustom untuk estetika premium */}
                     <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none">
                       <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"></path>
@@ -109,7 +110,7 @@ const App = () => {
               </div>
             </motion.div>
           ) : (
-            /* TAMPILAN UTAMA APLIKASI */
+            /* TAMPILAN UTAMA APLIKASI SETELAH LOGIN */
             <motion.div 
               key="app"
               initial={{ opacity: 0, y: 20 }}
