@@ -13,7 +13,7 @@ const queryClient = new QueryClient();
 const App = () => {
   const [userName, setUserName] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
-  // State baru untuk menyimpan pilihan jenjang sekolah
+  // State untuk menyimpan pilihan jenjang sekolah
   const [schoolLevel, setSchoolLevel] = useState("");
 
   // Mengecek data login yang tersimpan di localStorage saat aplikasi dimuat
@@ -38,6 +38,13 @@ const App = () => {
     }
   };
 
+  // Data untuk opsi sekolah agar gampang di-map menjadi kartu
+  const schoolOptions = [
+    { id: 'SD', label: 'Sekolah Dasar', icon: '🎒' },
+    { id: 'SMP', label: 'SMP', icon: '🏫' },
+    { id: 'SMA', label: 'SMA / SMK', icon: '🎓' }
+  ];
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -52,60 +59,65 @@ const App = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-background p-6"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-[#F8F9FA] p-6"
             >
-              <div className="w-full max-w-md space-y-8 text-center">
-                <div className="space-y-2">
+              <div className="w-full max-w-md space-y-8">
+                <div className="text-center space-y-2">
                   <h1 className="text-4xl font-black text-primary italic tracking-tighter">
                     FUN CLOCK ⏰
                   </h1>
-                  <p className="text-muted-foreground font-medium">
-                    Masukkan namamu dan pilih jenjang sekolahmu!
-                  </p>
+                  <p className="text-muted-foreground font-medium">Masuk untuk memulai petualangan!</p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-4">
-                  {/* Input Nama */}
-                  <input
-                    type="text"
-                    placeholder="Ketik namamu di sini..."
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    className="w-full px-6 py-4 rounded-2xl border-2 border-primary/20 focus:border-primary outline-none text-center text-xl font-bold transition-all shadow-sm bg-card"
-                    autoFocus
-                  />
+                <form onSubmit={handleLogin} className="space-y-6">
+                  {/* Input Nama Premium */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-muted-foreground uppercase ml-2">Nama Lengkap</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Iboy Cloud"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      className="w-full px-6 py-4 rounded-2xl border-2 border-primary/10 focus:border-primary focus:bg-white outline-none text-lg font-bold transition-all shadow-sm bg-white/50"
+                      autoFocus
+                    />
+                  </div>
 
-                  {/* Dropdown Pilihan Sekolah (Kreatif & Clean) */}
-                  <div className="relative group">
-                    <select
-                      value={schoolLevel}
-                      onChange={(e) => setSchoolLevel(e.target.value)}
-                      className="w-full px-6 py-4 rounded-2xl border-2 border-primary/20 focus:border-primary outline-none text-center text-lg font-bold transition-all shadow-sm bg-card appearance-none cursor-pointer text-foreground"
-                    >
-                      <option value="" disabled>--- Pilih Asal Sekolah ---</option>
-                      <option value="SD">Sekolah Dasar (SD)</option>
-                      <option value="SMP">Sekolah Menengah Pertama (SMP)</option>
-                      <option value="SMA">Sekolah Menengah Atas (SMA)</option>
-                    </select>
-                    {/* Ikon panah kustom untuk estetika premium */}
-                    <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none">
-                      <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"></path>
-                      </svg>
+                  {/* Pilihan Sekolah Model Kartu Premium (Tidak Pakai Select Bawaan) */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-muted-foreground uppercase ml-2">Pilih Jenjang Sekolah</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {schoolOptions.map((opt) => (
+                        <button
+                          key={opt.id}
+                          type="button" // Penting: type="button" agar form tidak tersubmit saat diklik
+                          onClick={() => setSchoolLevel(opt.id)}
+                          className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${
+                            schoolLevel === opt.id 
+                            ? "border-primary bg-primary/5 shadow-md scale-[1.05]" 
+                            : "border-primary/10 bg-white hover:border-primary/30"
+                          }`}
+                        >
+                          <span className="text-2xl">{opt.icon}</span>
+                          <span className={`text-[10px] font-black ${schoolLevel === opt.id ? "text-primary" : "text-muted-foreground"}`}>
+                            {opt.id}
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   </div>
 
                   <button
                     type="submit"
                     disabled={inputValue.trim().length < 2 || schoolLevel === ""}
-                    className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-black text-lg shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-40 disabled:hover:scale-100"
+                    className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-black text-lg shadow-lg hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
                   >
                     MULAI BELAJAR 🚀
                   </button>
                 </form>
                 
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">
-                  © 2026 analogstudywebb2
+                <p className="text-[10px] text-center text-muted-foreground font-bold tracking-widest pt-4 uppercase">
+                   © 2026 analogstudywebb2
                 </p>
               </div>
             </motion.div>
@@ -126,7 +138,6 @@ const App = () => {
             </motion.div>
           )}
         </AnimatePresence>
-
       </TooltipProvider>
     </QueryClientProvider>
   );
