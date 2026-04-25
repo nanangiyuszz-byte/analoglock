@@ -24,12 +24,12 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
   const [isManualSaved, setIsManualSaved] = useState(false);
 
   useEffect(() => {
-    setQuestions(generateQuizQuestions(20));
+    // Memanggil 10 Soal Sesuai Permintaan
+    setQuestions(generateQuizQuestions(10));
   }, []);
 
   const q = questions[currentIdx];
 
-  // FUNGSI PEMAKSAAN SIMPAN KE LOCALSTORAGE
   const forceSaveToHistory = () => {
     const savedName = localStorage.getItem('user-name') || 'Pelajar';
     const result = { 
@@ -54,7 +54,7 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
 
   const nextQuestion = () => {
     if (currentIdx + 1 >= questions.length) {
-      forceSaveToHistory(); // Auto-save saat selesai
+      forceSaveToHistory(); 
       setFinished(true);
     } else {
       setCurrentIdx(i => i + 1);
@@ -83,7 +83,8 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
     setAnswered(true);
     const hDiff = Math.abs(dragHours - q.targetHours) % 12;
     const mDiff = Math.abs(dragMinutes - q.targetMinutes);
-    if (hDiff === 0 && mDiff <= 2) {
+    // Toleransi agar drag tidak terlalu menyiksa
+    if ((hDiff === 0 || hDiff === 12 || (dragHours === 12 && q.targetHours === 0) || (dragHours === 0 && q.targetHours === 12)) && mDiff <= 2) {
       playCorrectSound();
       setCorrect(c => c + 1);
       setSelectedAnswer('correct');
@@ -136,7 +137,6 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
             </div>
           </div>
 
-          {/* TOMBOL PEMAKSAAN SIMPAN */}
           <div className="pt-4">
             {!isManualSaved ? (
               <button 
@@ -184,9 +184,21 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
 
       <AnimatePresence mode="wait">
         <motion.div key={q?.id} initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="w-full flex flex-col items-center gap-6">
-          <h3 className="text-xl font-extrabold text-center text-slate-800">{q?.questionText}</h3>
+          
+          {/* Teks Pertanyaan (Berubah warna khusus untuk mode Puzzle) */}
+          <h3 className={`text-xl font-extrabold text-center ${q?.type === 'drag' ? 'text-blue-600' : 'text-slate-800'}`}>
+            {q?.questionText}
+          </h3>
 
-          <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-50 flex justify-center w-full">
+          <div className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-50 flex justify-center w-full relative">
+            
+            {/* Indikator Mode Puzzle */}
+            {q?.type === 'drag' && !answered && (
+              <div className="absolute top-4 right-4 animate-pulse">
+                <span className="bg-blue-100 text-blue-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Putar Jarum 👆</span>
+              </div>
+            )}
+            
             <AnalogClock 
               size={220} 
               interactive={!answered && q?.type === 'drag'} 
@@ -197,7 +209,8 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
             />
           </div>
 
-          {q?.type === 'multiple-choice' ? (
+          {/* Render Tombol Jawaban (Dipakai untuk Pilihan Ganda & Benar/Salah) */}
+          {q?.type === 'multiple-choice' || q?.type === 'true-false' ? (
             <div className="grid grid-cols-2 gap-3 w-full">
               {q.options?.map(opt => (
                 <button 
@@ -207,7 +220,7 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
                   className={`py-4 rounded-2xl text-lg font-black transition-all border-2 ${
                     answered && opt === q.correctAnswer ? 'bg-green-500 border-green-500 text-white shadow-lg' : 
                     answered && opt === selectedAnswer ? 'bg-red-500 border-red-500 text-white' : 
-                    'bg-white border-slate-200 text-slate-700'
+                    'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   {opt}
@@ -215,28 +228,16 @@ const QuizSystem: React.FC<QuizSystemProps> = ({ onBack }) => {
               ))}
             </div>
           ) : (
+            // Render Mode Drag / Puzzle
             <div className="w-full">
               {!answered ? (
-                <button onClick={handleDragSubmit} className="w-full bg-primary text-white py-4 rounded-2xl font-black shadow-lg uppercase tracking-widest active:scale-95 transition-all">
-                  Kunci Jawaban 🔒
-                </button>
-              ) : (
-                <div className={`w-full py-4 rounded-2xl text-center font-black ${selectedAnswer === 'correct' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                  {selectedAnswer === 'correct' ? '🎉 BENAR!' : `❌ JAWABAN: ${formatTime(q.targetHours, q.targetMinutes)}`}
+                <div className="space-y-4">
+                  <p className="text-sm text-slate-400 text-center font-bold animate-bounce">
+                    Arahkan dengan benar lalu kunci! 🕒
+                  </p>
+                  <button onClick={handleDragSubmit} className="w-full bg-blue-500 text-white py-4 rounded-2xl font-black shadow-lg uppercase tracking-widest hover:bg-blue-600 active:scale-95 transition-all">
+                    Kunci Jawaban 🔒
+                  </button>
                 </div>
-              )}
-            </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
-
-      {answered && (
-        <button onClick={nextQuestion} className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-2 shadow-xl uppercase tracking-widest text-sm">
-          {currentIdx + 1 < questions.length ? 'Lanjut' : 'Lihat Hasil'} <ArrowRight size={18} />
-        </button>
-      )}
-    </div>
-  );
-};
-
-export default QuizSystem;
+              ) : (
+                <div className={`w-
